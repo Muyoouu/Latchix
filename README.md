@@ -2,11 +2,12 @@
 
 **The API-first SFTP server.**
 
-Latchix is a Rust SFTP server with a first-class control plane. Users, groups, permissions, quotas, audit logs, and metrics are managed through an HTTP API and a small admin UI. The same core is designed to run as a standalone binary or be embedded in another Rust service.
+Latchix is a Rust SFTP server with a first-class control plane. Tenants, users, groups, grants, quotas, audit logs, and metrics are managed through an HTTP API and an opt-in admin UI. The same core is designed to run as a standalone binary or be embedded in another Rust service.
 
 Status: **blueprint**. There is no runtime code yet.
 
 - [Project blueprint](BLUEPRINT.md)
+- [v0.1 plan](docs/PLAN.md)
 - [Design notes](docs/README.md)
 - License: Apache-2.0
 
@@ -20,10 +21,12 @@ Latchix is for those teams.
 
 - SFTP over SSH with public key authentication
 - Local filesystem first, S3-compatible storage later
-- Users, groups, virtual roots, permissions, and quotas
+- Tenant-scoped users, groups, roots, grants, and quotas from v0.1
+- Allow-only ACL with ancestor traversal, expiry, and revocation
+- SQLite metadata with a single-binary deployment
 - REST API with OpenAPI, plus a Unix socket
 - Audit log and Prometheus metrics
-- Small admin UI
+- Opt-in admin UI
 - Single binary, Docker image, systemd unit
 - Apache-2.0 core
 
