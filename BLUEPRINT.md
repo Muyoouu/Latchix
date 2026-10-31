@@ -4,7 +4,7 @@
 **Owner:** Musa Yohanes
 **Started:** 2026-10-31
 **License:** Apache-2.0
-**Repository:** `Muyoouu/latchix`
+**Repository:** `Muyoouu/Latchix`
 
 ---
 
@@ -215,7 +215,7 @@ The first release should be useful for a small team and safe enough for a stagin
 ### 7.1 Workspace layout
 
 ```text
-latchix/
+Latchix/
 ├── Cargo.toml                 # workspace
 ├── crates/
 │   ├── latchix-core/          # domain types, auth, permissions, VirtualFs
