@@ -1,0 +1,28 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Local data and databases
+*.db
+*.db-shm
+*.db-wal
+/data/
+/var/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Benchmarks and test output
+/bench-results/
+/test-output/
+
+# Editor and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
