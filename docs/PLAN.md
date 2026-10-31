@@ -211,6 +211,10 @@ Exit criteria:
 - The UI is opt-in and passes its security review.
 - The benchmark is reproducible from the published script.
 
+## Learning checkpoints
+
+Personal understanding is a delivery constraint, not an afterthought. Run the phase checkpoints in [LEARNING.md](LEARNING.md) before moving to the next phase. A phase is not done if the decision owner cannot explain the phase's decisions without AI.
+
 ## Delivery pressure
 
 If the schedule slips, cut in this order:

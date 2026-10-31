@@ -4,6 +4,8 @@ The main project blueprint lives at [BLUEPRINT.md](../BLUEPRINT.md).
 
 The v0.1 execution plan lives at [PLAN.md](PLAN.md).
 
+The personal learning checkpoints live at [LEARNING.md](LEARNING.md).
+
 ## Decisions
 
 - [0001: Tenancy model](decisions/0001-tenancy-model.md)
