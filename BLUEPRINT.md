@@ -86,7 +86,7 @@ Rust is a credibility signal, not the product. The product is controlled, audita
 3. **Secure by default.** Key authentication only, modern algorithms, no password auth in v0.1, least privilege, explicit host key verification.
 4. **Audit everything that matters.** Auth, transfer, permission change, user change, key change, config change.
 5. **No hidden state.** The database and the filesystem are the source of truth. No generated config files that drift.
-6. **Boring operations.** Single binary, SQLite metadata, Docker image, systemd unit, clear logs, Prometheus metrics.
+6. **Boring operations.** Static binary, SQLite metadata, optional OCI image, systemd unit, clear logs, Prometheus metrics.
 7. **Permissive core.** Apache-2.0.
 8. **Compatibility over cleverness.** Follow the SFTP v3 specification and match OpenSSH client behavior.
 9. **No feature parity races.** Compete on the wedge, not on the checklist.
@@ -176,15 +176,16 @@ The first release proves the SFTP core with real clients and ships the multi-ten
 
 **Operations**
 
-- Single binary
+- Static musl binary, primary. glibc binary as fallback.
+- Optional OCI image, Docker-compatible, built with rootless Podman.
 - TOML config, environment variables, CLI flags
 - SQLite metadata only
 - WAL mode, one writer, read pool
 - Foreign keys enabled on every connection
 - Embedded forward-only migrations
 - Backup through the SQLite backup API or `VACUUM INTO`
-- Docker image
-- systemd unit
+- systemd unit and Podman Quadlet example
+- CLI subcommands: `serve`, `migrate`, `backup`, `health`, `bootstrap-token`, `doctor`.
 - Structured logs with `tracing`
 - Graceful shutdown
 - Single-process file lock on the database
@@ -681,9 +682,13 @@ Notes:
 
 ### 7.7 Deployment
 
-- Static Linux binary, glibc and musl builds.
-- Docker image with a non-root user where possible.
+- Static Linux binary. `x86_64-unknown-linux-musl` is primary, `x86_64-unknown-linux-gnu` is fallback.
+- Optional OCI image, Docker-compatible, built with rootless Podman.
+- Image runtime is `distroless/static-debian12:nonroot`, non-root, with a read-only root filesystem.
+- Data, config, host keys, and bootstrap token are mounted. They are never baked into the image.
+- The image has no shell. `latchix health`, `latchix backup`, and `latchix migrate` handle operations.
 - systemd unit with `ProtectSystem`, `PrivateTmp`, and a dedicated user.
+- Podman Quadlet example for rootless container installs.
 - The SFTP listener runs on a configurable port.
 - The API should bind to a Unix socket or a private interface, not the public internet.
 - SQLite is the only metadata backend. The database file and storage root live on local disk, never on NFS or SMB.
@@ -821,7 +826,7 @@ Full matrix before v1.0:
 - `cargo audit`
 - `cargo deny check`
 - `cargo doc`
-- Docker build
+- Container image build with Podman
 - Integration tests with OpenSSH client
 
 ---
@@ -977,13 +982,15 @@ Do not optimize before correctness. Do not publish cherry-picked numbers.
 - Tenant-scoped REST API with OpenAPI, problem+json, ETag, and idempotency
 - Audit log with append-only triggers
 - Quota reservation and reconciliation
-- Docker image and systemd unit
+- Containerfile and systemd unit scaffolding
 
 ### Weeks 11-12
 
 - Minimal opt-in admin UI for users, keys, grants, and audit
 - Tenant isolation suite and ACL matrix green
 - SQLite control-plane benchmark published
+- Static musl and glibc binaries built
+- OCI image, systemd unit, and Podman Quadlet built
 - Reproducible benchmark against a stock SSH server and a mature open-source SFTP server
 - Demo video
 - Launch post on Hacker News, r/rust, r/selfhosted, r/sysadmin
@@ -1023,3 +1030,4 @@ Do not optimize before correctness. Do not publish cherry-picked numbers.
 | 2026-11-01 | API keys hashed with SHA-256, not Argon2 | Bearer keys are high entropy and Argon2 per request is a CPU DoS vector |
 | 2026-11-01 | Admin UI is an opt-in Cargo feature | Keeps core and embedded builds small and API-only |
 | 2026-11-01 | Shared host key in v0.1 | SSH has no tenant hint before key exchange. Per-tenant host keys need per-tenant listeners |
+| 2026-11-01 | Binary primary, OCI image secondary, library internal | Keeps the single-binary promise while supporting container users. Library waits for a stable embedded API |

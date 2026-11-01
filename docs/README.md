@@ -12,6 +12,7 @@ The personal learning checkpoints live at [LEARNING.md](LEARNING.md).
 - [0002: ACL and dynamic grants](decisions/0002-acl-and-grants.md)
 - [0003: Metadata store and database choice](decisions/0003-metadata-store.md)
 - [0004: Control plane and UI packaging](decisions/0004-control-plane-and-ui.md)
+- [0005: Distribution artifacts](decisions/0005-distribution-artifacts.md)
 
 ## Conventions
 

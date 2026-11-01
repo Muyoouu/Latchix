@@ -27,7 +27,7 @@ Latchix is for those teams.
 - REST API with OpenAPI, plus a Unix socket
 - Audit log and Prometheus metrics
 - Opt-in admin UI
-- Single binary, Docker image, systemd unit
+- Static binary, optional OCI image, systemd unit
 - Apache-2.0 core
 
 ## What it will not be

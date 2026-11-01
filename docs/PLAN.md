@@ -10,7 +10,30 @@ This plan turns the accepted architecture into an execution order. The blueprint
 
 ## Goal
 
-Ship a single-binary, permissively licensed SFTP server that passes the client matrix and proves tenant isolation, ACL enforcement, and the API-first control plane on one host with SQLite metadata.
+Ship a static single-binary, permissively licensed SFTP server that passes the client matrix and proves tenant isolation, ACL enforcement, and the API-first control plane on one host with SQLite metadata. Provide an optional OCI image and keep the Rust library internal until v0.2.
+
+## Artifacts
+
+| Artifact | v0.1 | Role |
+|---|---|---|
+| Static musl binary | Yes, primary | Portable single file, systemd, downloads |
+| glibc binary | Yes, fallback | Distro compatibility |
+| OCI image | Yes, optional | Demo, container deployments, CI |
+| systemd unit | Yes | Native Linux host |
+| Podman Quadlet | Yes | Rootless systemd |
+| Rust library crates | Internal only | Public `latchix-core` in v0.2 |
+| Multi-arch image | Deferred | arm64 after v0.1 |
+| Helm chart, deb, rpm, brew | Deferred | Later distribution |
+
+Packaging rules:
+
+- The binary is the product. The container is a packaging channel.
+- Build `x86_64-unknown-linux-musl` first, `x86_64-unknown-linux-gnu` as fallback.
+- The OCI image is Docker-compatible, built with rootless Podman.
+- Runtime image is `distroless/static-debian12:nonroot`, non-root, read-only rootfs.
+- Mount data, config, host keys, and bootstrap token. Never bake them into the image.
+- `health`, `backup`, and `migrate` are CLI subcommands because the image has no shell.
+- Keep `ring` as a fallback feature if `aws-lc-rs` blocks the musl build.
 
 ## Requirement coverage
 
@@ -24,6 +47,7 @@ Ship a single-binary, permissively licensed SFTP server that passes the client m
 | API-first control plane | ADR 0004, blueprint section 7.5 | Phase 3 |
 | Opt-in admin UI | ADR 0004, blueprint section 6.1 | Phase 4 |
 | SQLite single-host metadata | ADR 0003 | Phase 2 |
+| Static binary and optional OCI image | ADR 0005 | Phase 0, Phase 5 |
 
 ## Non-negotiables
 
@@ -33,6 +57,9 @@ Ship a single-binary, permissively licensed SFTP server that passes the client m
 - Every filesystem operation is root-descriptor relative. No string prefix checks.
 - SQLite only. No Postgres, DuckDB, or DuckLake in the metadata path.
 - The UI is an opt-in feature. API-only and embedded builds do not pay for it.
+- The primary artifact is the static binary. The container is optional.
+- No database, host key, bootstrap token, or config is baked into an image.
+- Library crates stay internal in v0.1.
 - No feature ships without its test and its audit event.
 
 ## Phase 0: Decisions and scaffolding
@@ -41,16 +68,21 @@ Weeks 1-2.
 
 Deliverables:
 
-- Tenancy, ACL, metadata, and control-plane ADRs accepted.
+- Tenancy, ACL, metadata, control-plane, and distribution ADRs accepted.
 - Security policy and code of conduct.
 - Repository, CI, issue templates, `cargo-deny`, `cargo-audit`, pinned lockfile.
 - `DESIGN.md` started before any template work.
 - Default tenant and storage root conventions agreed.
+- Build spike for musl static and glibc binaries.
+- Podman image spike with a non-root, read-only runtime and mounted volumes.
+- CLI command contract for `serve`, `migrate`, `backup`, `health`, `bootstrap-token`, `doctor`.
 
 Exit criteria:
 
 - ADRs merged.
 - CI builds an empty workspace and runs format, clippy, test, audit, deny.
+- Both binary targets build in CI.
+- The image builds and starts with a mounted data volume.
 - No open question blocks the schema.
 
 ## Phase 1: Protocol and containment
@@ -160,7 +192,12 @@ Weeks 11-12.
 
 Deliverables:
 
-- Docker image and systemd unit.
+- Static musl binary and glibc fallback.
+- OCI image, Docker-compatible, built with rootless Podman.
+- Distroless static runtime, non-root, read-only rootfs, mounted data, config, and secrets.
+- systemd unit and Podman Quadlet example.
+- CLI subcommands: `serve`, `migrate`, `backup`, `health`, `bootstrap-token`, `doctor`.
+- Packaging docs for binary, systemd, Podman, backup, restore, and upgrade.
 - Reproducible benchmark against a stock SSH server and a mature open-source SFTP server.
 - SQLite control-plane benchmark published.
 - SBOM, signed binaries, checksums.
@@ -170,6 +207,10 @@ Deliverables:
 Exit criteria:
 
 - Gate 3: backup restores, migrations apply forward, and the server survives a restart with active session drain.
+- `latchix health` works from inside the distroless image.
+- The image runs rootless with a read-only rootfs and a mounted data volume.
+- The image contains no database, host key, bootstrap token, or config.
+- The systemd unit and Quadlet start the same binary with the same config.
 - Performance claims include hardware, kernel, filesystem, client version, script, and raw results.
 
 ## Workstreams
@@ -183,7 +224,8 @@ Exit criteria:
 | API | TBD | Tenant-scoped REST, OpenAPI, concurrency | Store, ACL |
 | UI | TBD | Opt-in server-rendered admin | API, `DESIGN.md` |
 | Security | TBD | Threat model tests, fuzz, audit triggers | All |
-| Release | TBD | Packaging, benchmarks, SBOM | All |
+| Packaging | TBD | musl and glibc binaries, OCI image, systemd, Quadlet, CLI | All |
+| Release | TBD | Benchmarks, SBOM, signing, checksums | Packaging |
 
 ## Deferred items and triggers
 
@@ -209,6 +251,11 @@ Exit criteria:
 - No unresolved critical or high security finding.
 - The API is documented by OpenAPI and every mutation is audited.
 - The UI is opt-in and passes its security review.
+- musl and glibc binaries build and start on a clean host.
+- The OCI image runs rootless, non-root, read-only, with mounted data and config.
+- The systemd unit and Quadlet start the server.
+- `latchix health`, `latchix backup`, and `latchix migrate` work.
+- No secrets are baked into the image.
 - The benchmark is reproducible from the published script.
 
 ## Learning checkpoints
@@ -221,13 +268,14 @@ If the schedule slips, cut in this order:
 
 1. UI pages beyond users, keys, grants, and audit.
 2. Tenant switcher polish.
-3. Docker and systemd packaging.
+3. Container image and Quadlet packaging.
 4. Benchmark breadth.
 
-Never cut: tenant isolation suite, ACL matrix, backup and restore, audit triggers, `openat2` containment, or the launch client matrix.
+Never cut: static binary, systemd unit, tenant isolation suite, ACL matrix, backup and restore, audit triggers, `openat2` containment, or the launch client matrix.
 
 ## Change control
 
 - A scope change requires a blueprint edit and, if it is expensive or irreversible, an ADR.
 - A deferred item moves earlier only when its trigger is met or a design partner commits.
 - A new database backend is not a v0.1 or v0.2 task.
+- A distribution change that affects the primary artifact requires an ADR update.
