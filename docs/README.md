@@ -14,6 +14,9 @@ The admin UI design gate lives at [DESIGN.md](../DESIGN.md).
 
 The personal learning checkpoints live at [LEARNING.md](LEARNING.md).
 
+The Phase 0 self-study reader lives at
+[learning/PHASE-0-READER.md](learning/PHASE-0-READER.md).
+
 Packaging and deployment notes live at [packaging/README.md](../packaging/README.md).
 
 ## Decisions
