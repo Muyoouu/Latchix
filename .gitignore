@@ -10,6 +10,10 @@ Cargo.lock.bak
 # Local CI scratch
 /.ci/
 
+# Python bytecode
+__pycache__/
+*.py[cod]
+
 # Local data and databases
 *.db
 *.db-shm
