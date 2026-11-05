@@ -4,14 +4,17 @@
 
 Latchix is a Rust SFTP server with a first-class control plane. Tenants, users, groups, grants, quotas, audit logs, and metrics are managed through an HTTP API and an opt-in admin UI. The same core is designed to run as a standalone binary or be embedded in another Rust service.
 
-Status: **Phase 0 scaffold**. The binary builds and serves health endpoints.
-SFTP, metadata, the control plane, and the admin UI are not implemented yet.
+Status: **Phase 1 protocol core**. The dev SFTP server passes OpenSSH and rclone.
+Production authentication, metadata, the control plane, and the admin UI are not
+implemented yet.
 
 - [Project blueprint](BLUEPRINT.md)
 - [v0.1 plan](docs/PLAN.md)
 - [CLI contract](docs/CLI.md)
 - [Admin UI design](DESIGN.md)
 - [Design notes](docs/README.md)
+- [Testing](docs/TESTING.md)
+- [Client matrix](docs/CLIENT-MATRIX.md)
 - [Packaging](packaging/README.md)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
@@ -38,19 +41,25 @@ Latchix is for those teams.
 
 ## Current state
 
-Phase 0 provides:
+Phase 1 provides:
 
 - A Cargo workspace with core, SFTP, API, store, audit, CLI, and UI crates.
 - `latchix serve` with `/healthz` and `/readyz`.
 - `latchix health` with path checks and an API readiness probe.
 - `latchix doctor` with build, SQLite, host key, and path checks.
 - Explicit `migrate`, `backup`, and `bootstrap-token` stubs for Phase 2 and 3.
+- A root-bound SFTP v3 server with public key auth, `openat2` containment,
+  symlink and hardlink denial, and within-root rename.
+- OpenSSH `sftp` and rclone integration tests.
+- Rootless Podman test image and loopback-only dev SFTP server.
+- Fuzz targets for virtual paths and SFTP packets.
 - A static musl target, a glibc fallback, a distroless Containerfile, a systemd
   unit, and a rootless Podman Quadlet.
 - CI for format, Clippy, tests, docs, cargo-deny, cargo-audit, both binary
   targets, and a read-only container smoke test.
 
-The SSH/SFTP listener is the next implementation step.
+The production SSH/SFTP listener is wired through the dev harness. Phase 2 adds
+SQLite-backed tenant, user, key, and ACL authentication.
 
 ## What it will not be
 

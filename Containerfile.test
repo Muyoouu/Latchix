@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1
+
+# Test-only image for Phase 1. Not shipped and not used by the release build.
+# Build and run through scripts/test-container.sh.
+FROM docker.io/library/rust:1.99.1
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    CARGO_HOME=/usr/local/cargo \
+    RUSTUP_HOME=/usr/local/rustup
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        clang \
+        llvm \
+        libclang-dev \
+        pkg-config \
+        libssl-dev \
+        cmake \
+        perl \
+        nasm \
+        openssh-client \
+        rclone \
+        strace \
+        git \
+        curl \
+        ca-certificates \
+        python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Match rust-toolchain.toml so cargo never tries to install components at
+# runtime, where the toolchain directories are read-only for the test user.
+RUN rustup component add clippy rustfmt \
+    && rustup target add x86_64-unknown-linux-musl \
+    && rustup toolchain install nightly --profile minimal --component llvm-tools-preview \
+    && cargo install --locked cargo-fuzz \
+    && cargo fuzz --version
+
+WORKDIR /src
+
+CMD ["cargo", "test", "--locked", "--workspace", "--all-features"]

@@ -1,0 +1,28 @@
+[package]
+name = "latchix-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+bytes = "1"
+libfuzzer-sys = "0.4"
+latchix-core = { path = "../crates/latchix-core" }
+russh-sftp = "3.0"
+
+[[bin]]
+name = "fuzz_path"
+path = "fuzz_targets/fuzz_path.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_packet"
+path = "fuzz_targets/fuzz_packet.rs"
+test = false
+doc = false
+bench = false

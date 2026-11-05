@@ -24,6 +24,16 @@ cargo doc --workspace --no-deps --all-features
 cargo xtask check
 ```
 
+Containerized tests:
+
+```bash
+scripts/test-container.sh
+scripts/test-container.sh -- cargo test --locked -p latchix-sftp
+```
+
+The source mount is read-only. Cargo target and registry data live in named
+Podman volumes.
+
 Policy checks:
 
 ```bash

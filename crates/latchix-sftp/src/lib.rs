@@ -4,6 +4,12 @@ use std::path::Path;
 
 use russh::keys::{Algorithm, PrivateKey};
 
+pub mod handler;
+pub mod local_fs;
+pub mod server;
+
+pub use local_fs::LocalFs;
+
 /// SFTP protocol version implemented by this crate.
 pub const PROTOCOL_VERSION: u32 = 3;
 

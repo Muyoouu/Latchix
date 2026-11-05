@@ -6,6 +6,14 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub mod fs;
+pub mod path;
+
+pub use fs::{
+    DirEntry, DirHandle, FileHandle, FileKind, FsError, Metadata, OpenOptions, SetAttrs, VirtualFs,
+};
+pub use path::{MAX_PATH_BYTES, MAX_SEGMENT_BYTES, PathError, VirtualPath};
+
 macro_rules! id_type {
     ($name:ident, $doc:literal) => {
         #[doc = $doc]

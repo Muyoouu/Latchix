@@ -115,9 +115,9 @@ Deliverables:
 - `russh` + `russh-sftp` server with public key authentication and a local filesystem.
 - OpenSSH `sftp` and rclone automated smoke tests pass.
 - FileZilla manual compatibility check is recorded.
-- Root descriptor opened once per session.
+- Root descriptor opened once per root and reused by sessions.
 - `openat2` containment with `RESOLVE_BENEATH`, `RESOLVE_NO_SYMLINKS`, and `RESOLVE_NO_MAGICLINKS`.
-- Canonical path parser with rejection tests for `..`, absolute paths, empty segments, and trailing slash.
+- Canonical path parser with rejection tests for `..`, NUL, empty segments, and length limits. SFTP absolute paths are virtual.
 - Symlink denied. Hardlink denied by default, allowed only in an explicit single-tenant mode.
 - Rename restricted to one root.
 - Fuzz targets for the packet parser and path handling.
@@ -129,6 +129,31 @@ Exit criteria:
   FileZilla manual checklist is recorded.
 - Escape tests fail closed for `..`, absolute paths, symlinks, and hardlinks.
 - No panic on malformed SFTP packets.
+
+### Phase 1 status
+
+- [x] `russh` and `russh-sftp` server with Ed25519 host keys and public key auth.
+- [x] Fixed dev `TenantContext` mapped to one root. No production static auth.
+- [x] Root descriptor opened once per session.
+- [x] `openat2` containment with `BENEATH`, `NO_SYMLINKS`, `NO_MAGICLINKS`, and `NO_XDEV`.
+- [x] Canonical virtual path parser with traversal, NUL, repeated slash, length, and NFC tests.
+- [x] Symlinks denied. Hardlinks denied before truncate.
+- [x] Session-scoped handle table prevents cross-session handle reuse.
+- [x] Rename restricted to one root.
+- [x] OpenSSH `sftp` automated round trip passes.
+- [x] rclone automated copy test passes in the container.
+- [x] Fuzz targets for path parsing and SFTP packet decoding. Smoke runs found no crash.
+- [x] Rootless container test harness and loopback-only dev server.
+- [ ] FileZilla manual checklist recorded.
+
+Notes:
+
+- SFTP absolute paths are virtual. `/etc/passwd` resolves under the tenant root,
+  never to the host path.
+- `posix-rename@openssh.com` and `fsync@openssh.com` are advertised and handled.
+  Other extension requests fail with `SSH_FX_OP_UNSUPPORTED`.
+- The production `latchix serve` command remains health-only. The SFTP listener
+  is wired only through the dev harness until Phase 2 store auth exists.
 
 ## Phase 2: Metadata and ACL
 

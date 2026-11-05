@@ -12,6 +12,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 latchix-core.workspace = true
 russh.workspace = true
 russh-sftp.workspace = true
@@ -19,3 +20,7 @@ rustix.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+rand.workspace = true
+tempfile.workspace = true

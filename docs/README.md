@@ -6,6 +6,10 @@ The v0.1 execution plan lives at [PLAN.md](PLAN.md).
 
 The command line contract lives at [CLI.md](CLI.md).
 
+Container testing lives at [TESTING.md](TESTING.md).
+
+The client matrix lives at [CLIENT-MATRIX.md](CLIENT-MATRIX.md).
+
 The admin UI design gate lives at [DESIGN.md](../DESIGN.md).
 
 The personal learning checkpoints live at [LEARNING.md](LEARNING.md).

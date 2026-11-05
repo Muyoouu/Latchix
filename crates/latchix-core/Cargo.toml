@@ -12,5 +12,8 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 serde.workspace = true
+thiserror.workspace = true
+unicode-normalization.workspace = true
 uuid.workspace = true
