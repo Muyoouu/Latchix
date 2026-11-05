@@ -1,0 +1,66 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/latchix-core",
+    "crates/latchix-sftp",
+    "crates/latchix-api",
+    "crates/latchix-store",
+    "crates/latchix-audit",
+    "crates/latchix-cli",
+    "crates/latchix-ui",
+    "xtask",
+]
+exclude = ["fuzz"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+license = "Apache-2.0"
+authors = ["Musa Yohanes"]
+description = "API-first SFTP server with hard multi-tenancy"
+publish = false
+
+[workspace.dependencies]
+anyhow = "1.0"
+axum = "0.8"
+clap = { version = "4.5", features = ["derive", "env"] }
+http-body-util = "0.1"
+latchix-api = { version = "0.1.0", path = "crates/latchix-api" }
+latchix-audit = { version = "0.1.0", path = "crates/latchix-audit" }
+latchix-core = { version = "0.1.0", path = "crates/latchix-core" }
+latchix-sftp = { version = "0.1.0", path = "crates/latchix-sftp" }
+latchix-store = { version = "0.1.0", path = "crates/latchix-store" }
+latchix-ui = { version = "0.1.0", path = "crates/latchix-ui" }
+rusqlite = { version = "0.40", features = ["bundled"] }
+russh = "0.65"
+russh-sftp = "3.0"
+rustix = { version = "1.1", features = ["fs", "process"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+tokio = { version = "1.54", features = [
+    "fs",
+    "io-util",
+    "macros",
+    "net",
+    "rt-multi-thread",
+    "signal",
+    "sync",
+    "time",
+] }
+toml = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["limit", "timeout", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+uuid = { version = "1.18", features = ["serde", "v7"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "deny"
+todo = "warn"

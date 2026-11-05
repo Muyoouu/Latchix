@@ -1,0 +1,21 @@
+[package]
+name = "latchix-sftp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "SSH and SFTP adapters for Latchix"
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+latchix-core.workspace = true
+russh.workspace = true
+russh-sftp.workspace = true
+rustix.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true

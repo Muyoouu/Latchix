@@ -3,6 +3,13 @@
 **/*.rs.bk
 Cargo.lock.bak
 
+# Local tool and cargo isolation
+/.tools/
+/.cargo-home/
+
+# Local CI scratch
+/.ci/
+
 # Local data and databases
 *.db
 *.db-shm

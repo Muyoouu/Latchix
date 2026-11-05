@@ -1,0 +1,16 @@
+[package]
+name = "latchix-store"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "SQLite metadata store for Latchix"
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rusqlite.workspace = true
+thiserror.workspace = true
