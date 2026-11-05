@@ -3,7 +3,9 @@ name: ci
 on:
   push:
     branches: [main]
+    tags: ["*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -105,6 +107,7 @@ jobs:
 
   build-glibc:
     name: glibc binary
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -139,6 +142,7 @@ jobs:
 
   image:
     name: container smoke
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
