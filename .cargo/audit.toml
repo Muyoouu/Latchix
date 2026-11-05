@@ -1,0 +1,5 @@
+# RUSTSEC-2023-0071: RSA host keys are rejected at config validation. RSA user
+# keys are public-key verification only, so the private-key timing path is not
+# exposed. Revisit when the rsa crate provides a constant-time implementation.
+[advisories]
+ignore = ["RUSTSEC-2023-0071"]

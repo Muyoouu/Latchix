@@ -1,0 +1,46 @@
+[Unit]
+Description=Latchix SFTP server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=latchix
+Group=latchix
+ExecStart=/usr/local/bin/latchix serve --config /etc/latchix/config.toml
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+LimitNOFILE=65536
+
+StateDirectory=latchix
+LogsDirectory=latchix
+RuntimeDirectory=latchix
+RuntimeDirectoryMode=0750
+ConfigurationDirectory=latchix
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+RemoveIPC=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=/var/lib/latchix /var/log/latchix /run/latchix
+
+[Install]
+WantedBy=multi-user.target

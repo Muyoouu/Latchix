@@ -1,0 +1,39 @@
+[graph]
+all-features = true
+
+[advisories]
+ignore = [
+    { id = "RUSTSEC-2023-0071", reason = "RSA host keys are rejected at config validation. RSA user keys are public-key verification only, so the private-key timing path is not exposed. Revisit when the rsa crate provides a constant-time implementation." },
+]
+
+[licenses]
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+confidence-threshold = 0.9
+
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+deny = [
+    { crate = "openssl", reason = "Use the Rust TLS stack so static musl builds stay simple" },
+    { crate = "openssl-sys", reason = "Use the Rust TLS stack so static musl builds stay simple" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

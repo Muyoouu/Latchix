@@ -1,0 +1,40 @@
+# Latchix configuration example.
+#
+# Paths must be absolute. The service user must own the storage root and the
+# database directory. Host keys and the bootstrap token are mounted or
+# installed separately. They are never baked into an image.
+
+[server]
+bind = "0.0.0.0:2222"
+host_keys = ["/etc/latchix/host_ed25519_key"]
+
+[api]
+unix_socket = "/run/latchix/api.sock"
+tcp = "127.0.0.1:8080"
+bootstrap_token_file = "/run/secrets/latchix_bootstrap_token"
+
+[storage]
+backend = "local"
+root = "/var/lib/latchix/files"
+
+[database]
+url = "sqlite:///var/lib/latchix/latchix.db"
+busy_timeout_ms = 5000
+synchronous = "full"
+max_read_connections = 8
+
+[tenancy]
+default_slug = "default"
+
+[acl]
+snapshot_refresh_seconds = 5
+
+[audit]
+# jsonl_path = "/var/log/latchix/audit.jsonl"
+
+[limits]
+max_sessions_per_user = 10
+max_connections_per_ip = 50
+
+[ui]
+enabled = false

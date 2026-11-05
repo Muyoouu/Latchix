@@ -1,0 +1,32 @@
+[Unit]
+Description=Latchix SFTP server (rootless Podman)
+After=network-online.target
+
+[Container]
+# Replace with a fully qualified image reference before deployment.
+Image=latchix:0.1.0
+ContainerName=latchix
+PublishPort=2222:2222
+PublishPort=127.0.0.1:8080:8080
+Volume=latchix-data:/var/lib/latchix:U,Z
+Volume=%h/.config/latchix/config.toml:/etc/latchix/config.toml:ro,Z
+Volume=%h/.config/latchix/host_ed25519_key:/etc/latchix/host_ed25519_key:ro,Z
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=ALL
+UserNS=keep-id:uid=65532,gid=65532
+User=65532:65532
+Tmpfs=/run
+Tmpfs=/tmp
+HealthCmd=/usr/local/bin/latchix health --config /etc/latchix/config.toml
+HealthInterval=30s
+HealthRetries=3
+HealthStartPeriod=5s
+HealthTimeout=5s
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

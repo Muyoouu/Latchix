@@ -1,0 +1,203 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  check:
+    name: format, lint, test, audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --all-features
+
+      - name: Docs
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --all-features
+
+      - name: Dependency policy
+        run: cargo deny check
+
+      - name: Advisory audit
+        run: cargo audit
+
+  build-musl:
+    name: static musl binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          targets: x86_64-unknown-linux-musl
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake musl-tools nasm perl
+
+      - name: Build
+        run: cargo build --locked --release --target x86_64-unknown-linux-musl -p latchix-cli
+
+      - name: Verify static link
+        run: |
+          file target/x86_64-unknown-linux-musl/release/latchix
+          if ldd target/x86_64-unknown-linux-musl/release/latchix 2>&1 | grep -Eq 'not a dynamic executable|statically linked'; then
+            echo "static binary confirmed"
+          else
+            ldd target/x86_64-unknown-linux-musl/release/latchix
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latchix-x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/latchix
+          if-no-files-found: error
+
+  build-glibc:
+    name: glibc binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake nasm perl
+
+      - name: Build
+        run: cargo build --locked --release -p latchix-cli
+
+      - name: Inspect
+        run: file target/release/latchix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latchix-x86_64-unknown-linux-gnu
+          path: target/release/latchix
+          if-no-files-found: error
+
+  image:
+    name: container smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+          podman info --format '{{.Host.Security.Rootless}}'
+
+      - name: Build image
+        run: podman build --format docker -t latchix:ci .
+
+      - name: Prepare mounted config
+        run: |
+          mkdir -p .ci/data .ci/config
+          ssh-keygen -t ed25519 -N '' -f .ci/config/host_ed25519_key
+          cat > .ci/config/config.toml <<'EOF'
+          [server]
+          bind = "0.0.0.0:2222"
+          host_keys = ["/etc/latchix/host_ed25519_key"]
+
+          [api]
+          tcp = "0.0.0.0:8080"
+
+          [storage]
+          backend = "local"
+          root = "/var/lib/latchix/files"
+
+          [database]
+          url = "sqlite:///var/lib/latchix/latchix.db"
+          busy_timeout_ms = 5000
+          synchronous = "full"
+          max_read_connections = 8
+
+          [tenancy]
+          default_slug = "default"
+
+          [limits]
+          max_sessions_per_user = 10
+          max_connections_per_ip = 50
+
+          [ui]
+          enabled = false
+          EOF
+
+      - name: Run read-only container
+        run: |
+          podman run -d \
+            --name latchix-ci \
+            --read-only \
+            --tmpfs /run \
+            --tmpfs /tmp \
+            --cap-drop=ALL \
+            --security-opt=no-new-privileges \
+            --userns=keep-id:uid=65532,gid=65532 \
+            -p 8080:8080 \
+            -v "$PWD/.ci/data:/var/lib/latchix:Z" \
+            -v "$PWD/.ci/config:/etc/latchix:ro,Z" \
+            latchix:ci
+
+      - name: Verify process and health endpoint
+        run: |
+          sleep 3
+          podman exec latchix-ci /usr/local/bin/latchix health --config /etc/latchix/config.toml
+          curl --fail --retry 5 --retry-delay 1 http://127.0.0.1:8080/readyz
+          test "$(podman inspect --format '{{.Config.User}}' latchix:ci)" = "65532:65532"
+
+      - name: Container logs
+        if: always()
+        run: podman logs latchix-ci || true
+
+      - name: Cleanup
+        if: always()
+        run: podman rm -f latchix-ci || true
