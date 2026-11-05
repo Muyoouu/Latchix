@@ -4,7 +4,13 @@ The main project blueprint lives at [BLUEPRINT.md](../BLUEPRINT.md).
 
 The v0.1 execution plan lives at [PLAN.md](PLAN.md).
 
+The command line contract lives at [CLI.md](CLI.md).
+
+The admin UI design gate lives at [DESIGN.md](../DESIGN.md).
+
 The personal learning checkpoints live at [LEARNING.md](LEARNING.md).
+
+Packaging and deployment notes live at [packaging/README.md](../packaging/README.md).
 
 ## Decisions
 
@@ -13,6 +19,7 @@ The personal learning checkpoints live at [LEARNING.md](LEARNING.md).
 - [0003: Metadata store and database choice](decisions/0003-metadata-store.md)
 - [0004: Control plane and UI packaging](decisions/0004-control-plane-and-ui.md)
 - [0005: Distribution artifacts](decisions/0005-distribution-artifacts.md)
+- [0006: IDs and storage layout](decisions/0006-ids-and-storage-layout.md)
 
 ## Conventions
 

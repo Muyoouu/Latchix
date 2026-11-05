@@ -4,11 +4,17 @@
 
 Latchix is a Rust SFTP server with a first-class control plane. Tenants, users, groups, grants, quotas, audit logs, and metrics are managed through an HTTP API and an opt-in admin UI. The same core is designed to run as a standalone binary or be embedded in another Rust service.
 
-Status: **blueprint**. There is no runtime code yet.
+Status: **Phase 0 scaffold**. The binary builds and serves health endpoints.
+SFTP, metadata, the control plane, and the admin UI are not implemented yet.
 
 - [Project blueprint](BLUEPRINT.md)
 - [v0.1 plan](docs/PLAN.md)
+- [CLI contract](docs/CLI.md)
+- [Admin UI design](DESIGN.md)
 - [Design notes](docs/README.md)
+- [Packaging](packaging/README.md)
+- [Security policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
 - License: Apache-2.0
 
 ## Why
@@ -30,6 +36,22 @@ Latchix is for those teams.
 - Static binary, optional OCI image, systemd unit
 - Apache-2.0 core
 
+## Current state
+
+Phase 0 provides:
+
+- A Cargo workspace with core, SFTP, API, store, audit, CLI, and UI crates.
+- `latchix serve` with `/healthz` and `/readyz`.
+- `latchix health` with path checks and an API readiness probe.
+- `latchix doctor` with build, SQLite, host key, and path checks.
+- Explicit `migrate`, `backup`, and `bootstrap-token` stubs for Phase 2 and 3.
+- A static musl target, a glibc fallback, a distroless Containerfile, a systemd
+  unit, and a rootless Podman Quadlet.
+- CI for format, Clippy, tests, docs, cargo-deny, cargo-audit, both binary
+  targets, and a read-only container smoke test.
+
+The SSH/SFTP listener is the next implementation step.
+
 ## What it will not be
 
 - An FTP, FTPS, or WebDAV server
@@ -41,8 +63,10 @@ Latchix is for those teams.
 
 ## Contributing
 
-The project is not ready for contributions yet. The blueprint is the first artifact. Once the v0.1 scope and architecture are settled, contribution guidelines and good first issues will follow.
+The project is pre-release. Contributions are limited to docs, tests, and
+reproducible issues before v0.2. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ## Security
 
-Do not run early builds in production. A security policy and disclosure process will be published before the first public release.
+Do not run early builds in production. Report vulnerabilities according to
+[SECURITY.md](SECURITY.md). Do not open a public issue for a vulnerability.

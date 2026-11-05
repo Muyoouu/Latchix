@@ -80,10 +80,31 @@ Deliverables:
 Exit criteria:
 
 - ADRs merged.
-- CI builds an empty workspace and runs format, clippy, test, audit, deny.
+- CI runs format, clippy, test, doc, audit, and deny.
 - Both binary targets build in CI.
 - The image builds and starts with a mounted data volume.
 - No open question blocks the schema.
+
+### Phase 0 status
+
+- [x] ADRs 0001 to 0006 accepted.
+- [x] Security policy, code of conduct, contributing guide, and issue templates.
+- [x] Workspace, pinned toolchain, `Cargo.lock`, `cargo-deny`, `cargo-audit`, and CI workflow.
+- [x] `DESIGN.md` started before template work.
+- [x] Default tenant and storage layout recorded in ADR 0006.
+- [x] CLI contract and command stubs.
+- [x] musl static and glibc release builds verified locally.
+- [x] Podman image builds and starts read-only, non-root, with mounted data.
+- [ ] First GitHub Actions run.
+
+Notes:
+
+- The local musl build ran in the `rust:1.99.1-alpine` container because
+  `musl-gcc` is not installed on the development host. CI installs
+  `musl-tools`.
+- `cargo-deny` and `cargo-audit` pass with the documented
+  `RUSTSEC-2023-0071` mitigation. RSA host keys are rejected at config
+  validation.
 
 ## Phase 1: Protocol and containment
 
@@ -92,7 +113,8 @@ Weeks 3-6.
 Deliverables:
 
 - `russh` + `russh-sftp` server with public key authentication and a local filesystem.
-- OpenSSH `sftp`, FileZilla, and rclone smoke tests pass.
+- OpenSSH `sftp` and rclone automated smoke tests pass.
+- FileZilla manual compatibility check is recorded.
 - Root descriptor opened once per session.
 - `openat2` containment with `RESOLVE_BENEATH`, `RESOLVE_NO_SYMLINKS`, and `RESOLVE_NO_MAGICLINKS`.
 - Canonical path parser with rejection tests for `..`, absolute paths, empty segments, and trailing slash.
@@ -103,7 +125,8 @@ Deliverables:
 
 Exit criteria:
 
-- Gate 1: client matrix for the three launch clients passes.
+- Gate 1: automated client matrix for OpenSSH `sftp` and rclone passes.
+  FileZilla manual checklist is recorded.
 - Escape tests fail closed for `..`, absolute paths, symlinks, and hardlinks.
 - No panic on malformed SFTP packets.
 
@@ -244,7 +267,8 @@ Exit criteria:
 
 ## Definition of done for v0.1
 
-- Client matrix passes for OpenSSH, FileZilla, and rclone.
+- Client matrix passes for OpenSSH, FileZilla, and rclone. OpenSSH and rclone
+  are automated. FileZilla is a recorded manual check.
 - Tenant isolation suite and ACL matrix pass.
 - Revocation, expiry, and quota reservation tests pass.
 - Backup restores into the current schema version.

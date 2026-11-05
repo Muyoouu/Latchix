@@ -108,7 +108,9 @@ The first release proves the SFTP core with real clients and ships the multi-ten
 
 - SFTP v3 over SSH
 - Public key authentication only
-- Host key algorithms: Ed25519, RSA, ECDSA
+- Host key algorithms: Ed25519, ECDSA P-256, P-384, P-521. RSA host keys are
+  deferred because of RUSTSEC-2023-0071. RSA user keys remain supported for
+  public-key authentication.
 - Modern KEX and cipher defaults
 - Read, write, list, stat, mkdir, rmdir, remove, rename
 - Resumable transfers if the SFTP client supports them
@@ -733,6 +735,9 @@ Protect against:
 
 - Public key authentication only in v0.1.
 - Host key verification on the client side.
+- RSA host keys are rejected at configuration validation. RSA user keys are
+  verification-only because the `rsa` crate has an open private-key timing
+  advisory.
 - Modern algorithms by default. No SHA-1, no CBC, no weak DH groups.
 - `tenant_id` is a required argument in the store and `VirtualFs` APIs. Unscoped queries are rejected in review and by a SQL lint.
 - Composite foreign keys on `(tenant_id, id)` prevent cross-tenant references. Foreign keys are enabled on every connection.
@@ -782,9 +787,9 @@ Do not call Latchix "secure" or "production-ready" until the threat model, fuzzi
 
 Launch gate for v0.1:
 
-- OpenSSH `sftp`
-- FileZilla
-- rclone
+- OpenSSH `sftp` as the automated reference client.
+- rclone as the automated workflow client.
+- FileZilla as a recorded manual compatibility check.
 
 Full matrix before v1.0:
 
@@ -916,6 +921,7 @@ Do not optimize before correctness. Do not publish cherry-picked numbers.
 | ACL semantics drift | Silent privilege expansion | ADR, property tests, effective-permissions inspector |
 | UI scope | Delays v0.1 | Opt-in feature flag, `DESIGN.md` first, no JavaScript framework |
 | `russh-sftp` gaps | Blocks protocol work | Contribute upstream, keep a fallback plan, test early |
+| `rsa` timing advisory | RSA host key compromise | Reject RSA host keys, keep RSA user keys verification-only, track upstream |
 | Weak adoption | No users, no feedback | Build in public, design partners, benchmarks, launch posts |
 | Incumbent comparison | Unfavorable feature checklist | Compete on license, API, embeddability, not breadth |
 | Support burden | Burnout | Clear support policy, community forum, maintainer boundaries |
@@ -954,53 +960,11 @@ Do not optimize before correctness. Do not publish cherry-picked numbers.
 
 ---
 
-## 15. First 90 days
+## 15. Execution order
 
-### Weeks 1-2
-
-- 10 interviews with platform and infrastructure teams
-- Register `latchix.com`
-- Publish the blueprint
-- Set up the repository, CI, and issue templates
-- Write the security policy and code of conduct
-- Write the tenancy, ACL, and metadata ADRs
-- Start `DESIGN.md` before any UI work
-
-### Weeks 3-6
-
-- Spike: `russh` + `russh-sftp` server with public key auth and local filesystem
-- Pass OpenSSH `sftp`, FileZilla, and rclone smoke tests
-- Implement the root descriptor and `openat2` containment
-- Add traversal, symlink, and hardlink escape tests
-- Add fuzz targets for path handling
-
-### Weeks 7-10
-
-- SQLite schema with tenants, roots, users, groups, keys, grants, sessions, and usage
-- Migrations, foreign keys, writer actor, read pool, backup path
-- ACL engine with the rights bitmask, `TRAVERSE`, expiry, revocation, and revision snapshots
-- Tenant-scoped REST API with OpenAPI, problem+json, ETag, and idempotency
-- Audit log with append-only triggers
-- Quota reservation and reconciliation
-- Containerfile and systemd unit scaffolding
-
-### Weeks 11-12
-
-- Minimal opt-in admin UI for users, keys, grants, and audit
-- Tenant isolation suite and ACL matrix green
-- SQLite control-plane benchmark published
-- Static musl and glibc binaries built
-- OCI image, systemd unit, and Podman Quadlet built
-- Reproducible benchmark against a stock SSH server and a mature open-source SFTP server
-- Demo video
-- Launch post on Hacker News, r/rust, r/selfhosted, r/sysadmin
-- Collect feedback and decide v0.2 scope
-
-### Gate
-
-1. If the spike cannot pass the client matrix, stop and reassess. The protocol layer is the risk.
-2. Do not build the UI or the full API before the SFTP core works with real clients.
-3. Do not ship v0.1 until the tenant isolation suite and ACL matrix pass, and a backup restores into the current schema version.
+The phase order, gates, workstreams, and delivery cut line live in
+[docs/PLAN.md](docs/PLAN.md). This blueprint is the scope and architecture
+source of truth.
 
 ---
 
@@ -1031,3 +995,6 @@ Do not optimize before correctness. Do not publish cherry-picked numbers.
 | 2026-11-01 | Admin UI is an opt-in Cargo feature | Keeps core and embedded builds small and API-only |
 | 2026-11-01 | Shared host key in v0.1 | SSH has no tenant hint before key exchange. Per-tenant host keys need per-tenant listeners |
 | 2026-11-01 | Binary primary, OCI image secondary, library internal | Keeps the single-binary promise while supporting container users. Library waits for a stable embedded API |
+| 2026-11-05 | UUIDv7 text entity IDs, integer audit IDs | Non-reused opaque IDs without audit ordering ambiguity |
+| 2026-11-05 | Tenant and root storage keys in a nested path | Rename-safe layout that never derives a path from a slug or name |
+| 2026-11-05 | RSA host keys rejected in v0.1 | RUSTSEC-2023-0071 has no fixed upgrade. Verification-only RSA user keys keep compatibility |
