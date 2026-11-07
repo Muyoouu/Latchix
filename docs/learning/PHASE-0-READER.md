@@ -171,6 +171,12 @@ The on-disk layout is:
 <storage.root>/tenants/<tenant_storage_key>/roots/<root_storage_key>/
 ```
 
+The tenant key and root key are two levels, not two tenants. The tenant key says
+"which customer". The root key says "which root inside that customer". In v0.1
+there is one root per tenant. Users point at it through `home_root_id` and share
+it. Roots are not created per user. The schema allows more roots per tenant
+later, which is why the root level exists now.
+
 Why not `storage/tenants/acme/`?
 
 - A rename would move data or break references.
@@ -320,7 +326,8 @@ every query. The cheap time to add it is before clients exist.
 - `tenants` and `roots` tables
 - one seeded `default` tenant in v0.1
 - tenant CRUD through the API in v0.1
-- one storage root per tenant with an opaque `storage_key`
+- one tenant storage tree with one or more roots, each with its own opaque
+  `storage_key`
 - `users.home_root_id`, never a caller-supplied host path
 - SSH key fingerprint resolves to exactly one tenant and user
 - API key carries a tenant
@@ -329,6 +336,9 @@ every query. The cheap time to add it is before clients exist.
 - soft delete for tenants, users, groups, and roots
 - one process-wide host key in v0.1
 - cross-tenant access only for a server-admin principal
+
+Roots are storage boundaries, not per-user folders. A user is assigned to a
+root; the root is not created for that user. Multiple users may share a root.
 
 ### What it prevents
 

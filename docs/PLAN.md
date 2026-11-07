@@ -134,7 +134,7 @@ Exit criteria:
 
 - [x] `russh` and `russh-sftp` server with Ed25519 host keys and public key auth.
 - [x] Fixed dev `TenantContext` mapped to one root. No production static auth.
-- [x] Root descriptor opened once per session.
+- [x] Root descriptor opened once per root and reused by sessions.
 - [x] `openat2` containment with `BENEATH`, `NO_SYMLINKS`, `NO_MAGICLINKS`, and `NO_XDEV`.
 - [x] Canonical virtual path parser with traversal, NUL, repeated slash, length, and NFC tests.
 - [x] Symlinks denied. Hardlinks denied before truncate.
@@ -162,6 +162,7 @@ Weeks 7-10.
 Deliverables:
 
 - SQLite schema: `tenants`, `roots`, `users`, `groups`, `group_members`, `ssh_keys`, `grants`, `api_keys`, `sessions`, `usage`, `idempotency_keys`, `audit_events`, `share_links`.
+- Seed exactly one default root per tenant. Users point at it through `home_root_id`; roots are not created per user. The schema permits more roots per tenant later.
 - Embedded forward-only migrations.
 - Composite foreign keys and `UNIQUE(tenant_id, id)` on parents.
 - Partial unique indexes for grant subjects.

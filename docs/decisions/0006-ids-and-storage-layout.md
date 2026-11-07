@@ -31,10 +31,14 @@ injection bugs.
 5. The `default` slug is reserved. The default tenant may be renamed or
    disabled, but it is not hard-deleted.
 6. A default root named `default` is seeded for the default tenant and enabled.
-   Users require a live `home_root_id`, so the seed must provide one.
+   This is the tenant's only root in v0.1. Users share it through `home_root_id`.
+   The `roots` table and storage layout permit additional roots later; roots are
+   not per-user folders.
 7. Tenant and root `storage_key` values are 128-bit random lowercase hex
    strings, 32 characters long. They are not derived from a slug, name, or
-   username. Tenant and root keys are generated separately and unique.
+   username. Tenant and root keys are generated separately and unique. The
+   tenant key selects the tenant storage tree. The root key selects one root
+   inside that tree. The root key is per root, not per user.
 8. The on-disk layout is:
 
    ```text
@@ -53,6 +57,18 @@ injection bugs.
     verification step, not a rename.
 12. The database and storage tree are one backup unit. A backup that restores
     only one of them is invalid.
+
+### Root versus user
+
+```text
+tenants/<tenant_storage_key>/
+  roots/<root_storage_key>/     <- one root in v0.1, more allowed later
+```
+
+The root level exists because a root is a first-class storage boundary used by
+`users.home_root_id`, grants, quotas, and root-level lifecycle. A tenant can
+have one root or several. A user is assigned to a root; the root is not created
+per user. In v0.1 the seed creates exactly one root named `default` per tenant.
 
 ## Consequences
 

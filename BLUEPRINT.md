@@ -124,7 +124,7 @@ The first release proves the SFTP core with real clients and ships the multi-ten
 
 - Tenants, with one seeded default tenant
 - Tenant CRUD through the API
-- Per-tenant storage root with an opaque storage key
+- Per-tenant storage tree with one seeded root in v0.1. Each root has an opaque storage key. Users share a root through `home_root_id`; roots are not per-user folders.
 - Users, groups, and group membership
 - Per-user home root
 - Grants scoped to a tenant, root, and path anchor
@@ -315,10 +315,11 @@ Dependency rule: `latchix-core` depends on neither `axum`, SQLite, nor `russh`. 
 
 **Tenancy**
 
-- A tenant owns one storage root, one key namespace, one group namespace, and one limit set.
+- A tenant owns one storage tree, one key namespace, one group namespace, and one limit set. The tree contains one or more roots. v0.1 seeds one default root per tenant.
 - Tenant IDs are never reused. Tenants are soft-deleted with a tombstone.
 - The v0.1 database seeds a `default` tenant. Standalone installs may keep it invisible in the UI.
-- Tenant roots use an opaque storage key, never the tenant slug or a username.
+- Tenant and root storage keys are opaque, never the tenant slug, root name, or username. A root key is per root, not per user.
+- Roots are storage boundaries inside a tenant, not per-user folders. `users.home_root_id` points at a root; multiple users may share it. Multiple roots per tenant are allowed; multiple roots per user is deferred.
 - Root creation canonicalizes the path and rejects a root nested inside another tenant root.
 
 **Virtual filesystem**
