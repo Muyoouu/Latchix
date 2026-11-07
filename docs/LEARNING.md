@@ -5,6 +5,7 @@
 - Owner: Musa Yohanes
 - Related: [PLAN.md](PLAN.md), [decisions](decisions)
 - Reader: [Phase 0 reader](learning/PHASE-0-READER.md)
+- Reader: [Phase 1 reader](learning/PHASE-1-READER.md)
 
 The goal is not to read more code. The goal is to keep owning the decisions while agents write most of the code. Checkpoints test retrieval, prediction, and debugging, not familiarity.
 
